@@ -25,7 +25,7 @@ agent:
   max_turns: 3
   max_retry_backoff_ms: 300000
 codex:
-  command: codex app-server --stdio
+  command: codex app-server
   approval_policy: on-request
   turn_timeout_ms: 3600000
   read_timeout_ms: 5000

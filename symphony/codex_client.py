@@ -321,9 +321,6 @@ class JsonRpcCodexClient:
 
 
 def codex_shell_argv(command: str) -> list[str]:
-    bash = shutil.which("bash")
-    if bash:
-        return [bash, "-lc", command]
     if os.name == "nt":
         parts = command.split()
         if parts and parts[0] == "codex":
@@ -331,6 +328,9 @@ def codex_shell_argv(command: str) -> list[str]:
             if codex_cmd:
                 return [codex_cmd, *parts[1:]]
         return ["powershell.exe", "-NoProfile", "-NonInteractive", "-Command", command]
+    bash = shutil.which("bash")
+    if bash:
+        return [bash, "-lc", command]
     return ["sh", "-lc", command]
 
 
