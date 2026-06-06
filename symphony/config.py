@@ -211,19 +211,24 @@ def validate_dispatch_config(config: ServiceConfig) -> None:
         if not config.tracker.project_slug:
             raise ConfigError("missing_tracker_project_slug", "tracker.project_slug is required for Linear")
     elif config.tracker.kind == "jira":
-        if not config.tracker.base_url:
-            raise ConfigError("missing_tracker_base_url", "tracker.base_url is required for Jira")
-        if not config.tracker.email:
-            raise ConfigError("missing_tracker_email", "tracker.email is required for Jira basic auth")
-        if not config.tracker.api_token:
-            raise ConfigError("missing_tracker_api_token", "tracker.api_token is required for Jira")
-        if not config.tracker.project_key and not config.tracker.jql:
-            raise ConfigError("missing_tracker_project_key", "tracker.project_key or tracker.jql is required for Jira")
+        if _jira_needs_remote_access(config.tracker):
+            if not config.tracker.base_url:
+                raise ConfigError("missing_tracker_base_url", "tracker.base_url is required for Jira")
+            if not config.tracker.email:
+                raise ConfigError("missing_tracker_email", "tracker.email is required for Jira basic auth")
+            if not config.tracker.api_token:
+                raise ConfigError("missing_tracker_api_token", "tracker.api_token is required for Jira")
+            if not config.tracker.project_key and not config.tracker.jql:
+                raise ConfigError("missing_tracker_project_key", "tracker.project_key or tracker.jql is required for Jira")
     else:
         code = "unsupported_tracker_kind" if config.tracker.kind else "missing_tracker_kind"
         raise ConfigError(code, "tracker.kind must be present and must be 'linear' or 'jira'")
     if not config.codex.command.strip():
         raise ConfigError("missing_codex_command", "codex.command is required")
+
+
+def _jira_needs_remote_access(tracker: TrackerConfig) -> bool:
+    return bool(tracker.jql or tracker.active_states or tracker.terminal_states)
 
 
 def _section(source: Mapping[str, Any], key: str) -> dict[str, Any]:

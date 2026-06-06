@@ -34,6 +34,8 @@ class JiraClient:
             await self._client.aclose()
 
     async def fetch_candidate_issues(self) -> list[Issue]:
+        if not self.config.jql and not self.config.active_states:
+            return []
         jql = self.config.jql or build_issue_jql(
             project_key=self.config.project_key,
             states=self.config.active_states,

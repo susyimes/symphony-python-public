@@ -46,7 +46,34 @@ python -m pip install -e ".[test]"
 symphony --help
 ```
 
-2. Set tracker credentials as user environment variables, then open a new terminal.
+2. Copy the bundled workflow templates into the user-level Symphony config directory:
+
+```powershell
+symphony init
+symphony --config-dir
+```
+
+By default this creates editable workflow files under:
+
+```text
+C:\Users\<you>\.symphony
+```
+
+3. Start the safe dashboard-only workflow from any directory:
+
+```powershell
+symphony dashboard
+```
+
+Open:
+
+```text
+http://127.0.0.1:8765
+```
+
+`symphony dashboard` is intentionally safe: it has no active Jira states, does not require Jira credentials, and does not dispatch Codex.
+
+4. Set tracker credentials as user environment variables only when you are ready to run workflows that read Jira or Linear, then open a new terminal.
 
 For Jira workflows:
 
@@ -60,33 +87,6 @@ For Linear workflows:
 ```powershell
 [Environment]::SetEnvironmentVariable("LINEAR_API_KEY", "your-linear-api-key", "User")
 ```
-
-3. Copy the bundled workflow templates into the user-level Symphony config directory:
-
-```powershell
-symphony init
-symphony --config-dir
-```
-
-By default this creates editable workflow files under:
-
-```text
-C:\Users\<you>\.symphony
-```
-
-4. Start the safe dashboard-only workflow from any directory:
-
-```powershell
-symphony dashboard
-```
-
-Open:
-
-```text
-http://127.0.0.1:8765
-```
-
-`symphony dashboard` is intentionally safe: it has no active Jira states and does not dispatch Codex.
 
 5. Start the real PROJ workflow only when ready:
 
@@ -115,7 +115,7 @@ symphony dashboard
 symphony jira-project
 ```
 
-`dashboard` is a safe dashboard-only Jira smoke test and does not dispatch Codex.
+`dashboard` is a safe dashboard-only smoke test, does not require Jira credentials, and does not dispatch Codex.
 `jira-project` runs the PROJ Jira workflow that processes `To Do` issues with the `codex` label.
 
 Copy bundled workflows to the user-level config directory for editing:

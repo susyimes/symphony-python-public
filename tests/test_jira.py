@@ -52,6 +52,55 @@ prompt
     assert config.tracker.api_token == "token"
 
 
+def test_jira_dashboard_only_config_does_not_require_credentials(tmp_path) -> None:
+    workflow_path = tmp_path / "WORKFLOW.md"
+    workflow_path.write_text(
+        """---
+tracker:
+  kind: jira
+  base_url: https://example.atlassian.net
+  email: $JIRA_EMAIL
+  api_token: $JIRA_API_TOKEN
+  project_key: ABC
+  active_states: []
+  terminal_states: []
+---
+prompt
+""",
+        encoding="utf-8",
+    )
+
+    config = build_service_config(load_workflow(workflow_path), env={})
+    validate_dispatch_config(config)
+
+    assert config.tracker.email is None
+    assert config.tracker.api_token is None
+
+
+def test_jira_polling_config_still_requires_credentials(tmp_path) -> None:
+    workflow_path = tmp_path / "WORKFLOW.md"
+    workflow_path.write_text(
+        """---
+tracker:
+  kind: jira
+  base_url: https://example.atlassian.net
+  email: $JIRA_EMAIL
+  api_token: $JIRA_API_TOKEN
+  project_key: ABC
+  active_states: ["To Do"]
+  terminal_states: []
+---
+prompt
+""",
+        encoding="utf-8",
+    )
+
+    config = build_service_config(load_workflow(workflow_path), env={})
+    with pytest.raises(Exception) as exc:
+        validate_dispatch_config(config)
+    assert getattr(exc.value, "code") == "missing_tracker_email"
+
+
 def test_jql_builder_quotes_values() -> None:
     assert jql_quote('A "B"') == '"A \\"B\\""'
     assert build_issue_jql(project_key="ABC", states=["To Do", "In Progress"], labels=["codex"]) == (
@@ -150,6 +199,24 @@ async def test_jira_search_uses_current_search_jql_endpoint_and_paginates() -> N
     assert fake.posts[0]["auth"] == ("me@example.com", "token")
     assert fake.posts[0]["json"]["jql"].startswith('project = "ABC"')
     assert fake.posts[1]["json"]["nextPageToken"] == "next"
+
+
+@pytest.mark.asyncio
+async def test_jira_fetch_candidates_noops_without_active_states_or_jql() -> None:
+    fake = FakeHttpClient([])
+    config = TrackerConfig(
+        kind="jira",
+        base_url="https://example.atlassian.net/",
+        project_key="ABC",
+        required_labels=["codex"],
+        active_states=[],
+    )
+    client = JiraClient(config, client=fake)  # type: ignore[arg-type]
+
+    issues = await client.fetch_candidate_issues()
+
+    assert issues == []
+    assert fake.posts == []
 
 
 @pytest.mark.asyncio

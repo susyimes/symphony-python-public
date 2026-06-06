@@ -31,4 +31,4 @@ server:
 # Dashboard-only Jira smoke test
 
 This workflow is intentionally configured with no active states and a label that should never match real work.
-It is only for checking that the Symphony dashboard starts and can talk to Jira without dispatching Codex.
+It is only for checking that the Symphony dashboard starts without requiring Jira credentials or dispatching Codex.
